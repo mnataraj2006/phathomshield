@@ -2,13 +2,18 @@ fastapi==0.115.4
 uvicorn[standard]==0.32.1
 python-multipart==0.0.12
 pydicom>=2.4.4
-numpy==1.26.4
+# numpy: pinned to >=1.26 but <2.0 to avoid breaking API changes
+numpy>=1.26.4,<2.0
+# opencv: headless for server environments
 opencv-python-headless==4.10.0.84
-torch==2.4.1
-torchvision==0.19.1
+# torch: >=2.4 to allow newer wheels on newer Python if needed
+torch>=2.4.1
+torchvision>=0.19.1
 Pillow==10.4.0
 scipy==1.14.1
 # DICOM codec support (required for JPEG / JPEG-2000 / JPEG-LS compressed DICOMs)
 pylibjpeg>=2.1
 pylibjpeg-openjpeg>=1.3
 pylibjpeg-libjpeg>=1.3
+# python-dotenv for loading .env files
+python-dotenv>=1.0.0
