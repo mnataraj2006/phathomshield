@@ -1,0 +1,39 @@
+# render.yaml — Render.com deployment configuration for PhathomShield
+# Deploy this repo on Render: https://render.com/docs/blueprint-spec
+
+services:
+  # ── Backend: FastAPI + PyTorch ─────────────────────────────
+  - type: web
+    name: phathomshield-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: standard  # Free tier is too slow for PyTorch inference
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false   # Set manually in Render dashboard (never commit this)
+      - key: GROQ_API_KEY
+        sync: false   # Set manually in Render dashboard
+      - key: ALLOWED_ORIGINS
+        sync: false   # Set to your Vercel frontend URL after deploying frontend
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # ── Frontend: React + Vite static site ────────────────────
+  - type: web
+    name: phathomshield-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false   # Set to https://phathomshield-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    autoDeploy: true

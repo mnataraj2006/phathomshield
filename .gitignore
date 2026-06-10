@@ -1,0 +1,55 @@
+# =============================================================
+# PhathomShield — Root .gitignore
+# =============================================================
+
+# ── Environment / secrets (NEVER commit these) ───────────────
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# ── ML Model weights (too large for git) ─────────────────────
+*.pth
+*.pth.tar
+*.pt
+*.onnx
+*.h5
+*.pkl
+
+# ── Datasets & test data ─────────────────────────────────────
+datasets/
+data/
+test_output/
+*.zip
+
+# ── Node / Frontend ──────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── OS & Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
