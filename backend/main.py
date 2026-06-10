@@ -44,19 +44,21 @@ app = FastAPI(
 )
 
 # ─── CORS Configuration ───────────────────────────────────────────────────────
-# In production, set ALLOWED_ORIGINS env var to your frontend URL(s), e.g.:
-# ALLOWED_ORIGINS=https://phathomshield.vercel.app,https://phathomshield.onrender.com
+# allow_origins=["*"] is required for cross-origin requests from Vercel → Render.
+# NOTE: allow_credentials must be False when using wildcard origins (browser spec).
+# To restrict in future: set ALLOWED_ORIGINS env var to comma-separated URLs
+# and change allow_credentials back to True.
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-ALLOWED_ORIGINS: list[str] = (
+_explicit_origins: list[str] = (
     [o.strip() for o in _raw_origins.split(",") if o.strip()]
-    if _raw_origins
-    else ["*"]  # Development fallback — restrict in production via env var
+    if _raw_origins.strip()
+    else []
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origins=_explicit_origins if _explicit_origins else ["*"],
+    allow_credentials=bool(_explicit_origins),  # False when using wildcard
     allow_methods=["*"],
     allow_headers=["*"],
 )
