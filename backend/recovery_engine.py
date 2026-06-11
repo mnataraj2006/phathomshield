@@ -19,19 +19,15 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "encoder_be
 
 _autoencoder = None
 _device = None
-_torch_available = False
-
-try:
-    import torch
-    import torch.nn as nn
-    _torch_available = True
-    _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger.info("PyTorch available for recovery engine (device: %s)", _device)
-except ImportError:
-    logger.warning("PyTorch not installed — using OpenCV-only recovery")
+_torch_available = None   # None = not yet probed; True/False after first call
 
 
-if _torch_available:
+
+def _build_autoencoder_class():
+    """
+    Define and return the ConvAutoencoder class using torch.nn.
+    Called lazily the first time the model is needed.
+    """
     import torch.nn as _nn
 
     class ResBlock(_nn.Module):
@@ -76,18 +72,36 @@ if _torch_available:
             d2 = self.dec2(_t.cat([self.up2(d3), e2], 1))
             d1 = self.dec1(_t.cat([self.up1(d2), e1], 1))
             return self.final(d1)
-else:
-    ConvAutoencoder = None
+
+    return ConvAutoencoder
+
+
+
+def _probe_torch():
+    """Probe torch availability once and cache the result."""
+    global _torch_available, _device
+    if _torch_available is not None:
+        return _torch_available
+    try:
+        import torch
+        _torch_available = True
+        _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logger.info("PyTorch available for recovery engine (device: %s)", _device)
+    except ImportError:
+        _torch_available = False
+        logger.warning("PyTorch not installed — using OpenCV-only recovery")
+    return _torch_available
 
 
 # ── Model loading ─────────────────────────────────────────────────────────────
 def get_autoencoder():
     global _autoencoder
-    if not _torch_available:
+    if not _probe_torch():
         return None
     if _autoencoder is not None:
         return _autoencoder
     import torch
+    ConvAutoencoder = _build_autoencoder_class()
     model = ConvAutoencoder()
     if os.path.exists(MODEL_PATH):
         try:
@@ -195,7 +209,7 @@ def _autoencoder_refine(arr_norm: np.ndarray, mask: np.ndarray = None) -> np.nda
     Input channels: [corrupted_image * (1-mask), mask]
     Returns float32 in [0,1], or None on failure.
     """
-    if not _torch_available:
+    if not _probe_torch():
         return None
     try:
         import torch
