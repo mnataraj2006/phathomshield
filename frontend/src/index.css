@@ -2762,6 +2762,26 @@ ul, ol { list-style: none; }
   font-size: 0.76rem;
 }
 
+/* Cold-start wakeup banner (Render free tier) */
+.fw-wakeup-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.25);
+  color: var(--amber-bright);
+  font-size: 0.78rem;
+  font-weight: 500;
+  animation: fadeInUp 0.3s ease both;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+.fw-wakeup-icon { font-size: 1rem; animation: pulse 2s infinite; }
+
 /* ── BIG CTA BUTTON ─────────────────────────── */
 .fw-cta-btn {
   position: relative;

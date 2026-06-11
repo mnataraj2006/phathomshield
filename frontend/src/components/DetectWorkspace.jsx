@@ -4,6 +4,7 @@ import HeatmapViewer from './HeatmapViewer';
 import MetadataTable from './MetadataTable';
 import { generatePdfReport } from '../utils/generatePdfReport';
 import RadiologyReportModule from './RadiologyReportModule';
+import { fetchWithRetry } from '../utils/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -112,6 +113,7 @@ export default function DetectWorkspace() {
   const [file, setFile]             = useState(null);
   const [step, setStep]             = useState(-1);
   const [loading, setLoading]       = useState(false);
+  const [wakingUp, setWakingUp]     = useState(false); // Render cold-start indicator
   const [result, setResult]         = useState(null);
   const [error, setError]           = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -129,7 +131,18 @@ export default function DetectWorkspace() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${API_BASE}/validate`, { method: 'POST', body: fd });
+      const res = await fetchWithRetry(
+        `${API_BASE}/validate`,
+        {
+          method: 'POST',
+          body: fd,
+          onRetry: (attempt) => {
+            if (attempt === 1) setWakingUp(true);
+          },
+        },
+        2
+      );
+      setWakingUp(false);
       timers.forEach(clearTimeout);
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -140,8 +153,13 @@ export default function DetectWorkspace() {
       setResult(data);
     } catch (e) {
       timers.forEach(clearTimeout);
+      setWakingUp(false);
       setStep(-1);
-      setError(e.message || 'Analysis failed. Is the backend running?');
+      setError(
+        e.name === 'TypeError' || e.message?.includes('fetch')
+          ? 'Cannot reach the backend. The server may be starting up — please wait 30 seconds and try again.'
+          : e.message || 'Analysis failed. Is the backend running?'
+      );
     } finally {
       setLoading(false);
     }
@@ -257,6 +275,12 @@ export default function DetectWorkspace() {
         {/* ══ PROCESSING ════════════════════════════════ */}
         {loading && (
           <div className="fw-processing">
+            {wakingUp && (
+              <div className="fw-wakeup-banner" role="status" aria-live="polite">
+                <span className="fw-wakeup-icon" aria-hidden="true">🌙</span>
+                <span>Server is waking up (free tier cold-start) — retrying automatically…</span>
+              </div>
+            )}
             <div className="fw-proc-header">
               <div className="fw-proc-orbs" aria-hidden="true">
                 <div className="fw-orb fw-orb-a"/><div className="fw-orb fw-orb-b"/>

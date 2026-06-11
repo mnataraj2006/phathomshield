@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import UploadZone from './UploadZone';
 import RecoveryViewer from './RecoveryViewer';
 import CorruptionReport from './CorruptionReport';
+import { fetchWithRetry } from '../utils/api';
 
 // ─── Shared method config ──────────────────────────────────────────────────────
 const METHODS = [
@@ -289,6 +290,7 @@ export default function RecoverWorkspace() {
   const [file, setFile] = useState(null);
   const [step, setStep] = useState(-1);
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false); // Render cold-start indicator
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showMeta, setShowMeta] = useState(false);
@@ -311,7 +313,19 @@ export default function RecoverWorkspace() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${API_BASE}/recover`, { method: 'POST', body: fd });
+      const res = await fetchWithRetry(
+        `${API_BASE}/recover`,
+        {
+          method: 'POST',
+          body: fd,
+          onRetry: (attempt) => {
+            // Show waking-up banner — Render free tier cold-starts take 30-60s
+            if (attempt === 1) setWakingUp(true);
+          },
+        },
+        2  // retry up to 2 more times (total 3 attempts)
+      );
+      setWakingUp(false);
       timers.forEach(clearTimeout);
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -322,8 +336,13 @@ export default function RecoverWorkspace() {
       setResult(data);
     } catch (e) {
       timers.forEach(clearTimeout);
+      setWakingUp(false);
       setStep(-1);
-      setError(e.message || 'Recovery failed. Is the backend running?');
+      setError(
+        e.name === 'TypeError' || e.message?.includes('fetch')
+          ? 'Cannot reach the backend. The server may be starting up — please wait 30 seconds and try again.'
+          : e.message || 'Recovery failed. Is the backend running?'
+      );
     } finally {
       setLoading(false);
     }
@@ -441,6 +460,12 @@ export default function RecoverWorkspace() {
 
         {loading && (
           <div className="fw-processing">
+            {wakingUp && (
+              <div className="fw-wakeup-banner" role="status" aria-live="polite">
+                <span className="fw-wakeup-icon" aria-hidden="true">🌙</span>
+                <span>Server is waking up (free tier cold-start) — retrying automatically…</span>
+              </div>
+            )}
             <div className="fw-proc-header">
               <div className="fw-proc-orbs" aria-hidden="true">
                 <div className="fw-orb rw-orb-a" /><div className="fw-orb rw-orb-b" />
