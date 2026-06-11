@@ -3,7 +3,7 @@ import UploadZone from './UploadZone';
 import RecoveryViewer from './RecoveryViewer';
 import CorruptionReport from './CorruptionReport';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const RECOVER_STEPS = [
   { id: 'load',        label: 'Initializing recovery engine',          icon: '⚙️' },

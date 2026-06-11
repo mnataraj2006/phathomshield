@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { generateRadiologyPdf } from '../utils/generateRadiologyPdf';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /* ── Shared sub-components ───────────────────────────────────────────── */
 function SectionBox({ number, icon, title, children }) {

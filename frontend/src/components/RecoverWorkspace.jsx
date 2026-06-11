@@ -275,7 +275,7 @@ function MethodComparisonViewer({ images, aiAvailable, corrupted }) {
   );
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const PIPELINE_STEPS = [
   { id: 'load',        icon: '⚙️',  label: 'Initializing Engine',       desc: 'Recovery pipeline ready' },

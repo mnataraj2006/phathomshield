@@ -6,7 +6,7 @@ import { generatePdfReport } from '../utils/generatePdfReport';
 import RadiologyReportModule from './RadiologyReportModule';
 import { fetchWithRetry } from '../utils/api';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const PIPELINE_STEPS = [
   { id: 'init',      icon: '⚙️', label: 'Initializing Model',    desc: 'ResNet-50 · GPU ready' },

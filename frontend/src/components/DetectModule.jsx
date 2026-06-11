@@ -6,7 +6,7 @@ import TrustScoreGauge from './TrustScoreGauge';
 import { generatePdfReport } from '../utils/generatePdfReport';
 import RadiologyReportModule from './RadiologyReportModule';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const DETECT_STEPS = [
   { id: 'upload',     label: 'Initializing forensic engine',             icon: '⚙️' },
